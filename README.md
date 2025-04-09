@@ -22,7 +22,7 @@ The solution is built on Google Cloud Platform using the following components:
 2. **Cloud Functions**: Implement the core analytical and trading capabilities
 3. **Cloud Storage**: Stores analysis results and user data
 4. **Cloud Scheduler**: Triggers scheduled market analysis
-5. **Yahoo Finance API**: Provides market data (free tier for hackathon)
+5. **Yahoo Finance API**: Provides market data (free tier for testing)
 
 ## Technical Components
 
@@ -44,7 +44,7 @@ The solution is built on Google Cloud Platform using the following components:
 
 ## Data Sources
 
-For the hackathon implementation, we're using:
+For the testing implementation, we're using:
 
 - **Yahoo Finance API** (via yfinance Python library): Historical price data, company fundamentals, options chain information
 - **Simulated institutional data**: For proof-of-concept implementation
