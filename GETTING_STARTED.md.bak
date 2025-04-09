@@ -1,0 +1,200 @@
+# Getting Started with the GCP AI Agent Framework
+
+This guide will help you get started with building AI agents using the GCP AI Agent Framework. We'll walk through the basic concepts, setup, and creating your first agent.
+
+## Prerequisites
+
+Before you begin, make sure you have:
+
+- Python 3.9 or higher installed
+- A Google Cloud Platform account
+- Basic familiarity with DialogFlow and Google Cloud Functions
+- (Optional) Google Cloud SDK installed
+
+## Installation
+
+Install the framework using pip:
+
+```bash
+pip install gcpai-framework
+```
+
+Or, if you're using the source code directly:
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/gcpai-framework.git
+
+# Navigate to the repository directory
+cd gcpai-framework
+
+# Install the framework in development mode
+pip install -e .
+```
+
+## Basic Concepts
+
+The GCP AI Agent Framework is built around these key concepts:
+
+- **Agent**: The main application that processes requests and generates responses
+- **Intent**: A user's intention or goal in a conversation
+- **Intent Handler**: A class that processes a specific intent
+- **Webhook**: An HTTP endpoint that receives requests from DialogFlow and returns responses
+
+## Creating Your First Agent
+
+Let's create a simple "Hello World" agent that responds to greeting intents.
+
+### 1. Create a Project Directory
+
+```bash
+mkdir hello-agent
+cd hello-agent
+```
+
+### 2. Create the Agent Handler
+
+Create a file called `main.py` with the following content:
+
+```python
+"""
+Hello World Agent
+
+A simple agent that responds to greeting intents.
+"""
+
+import functions_framework
+from framework.core import WebhookHandler, IntentHandler, AgentRequest, AgentResponse
+
+# Create a webhook handler
+webhook = WebhookHandler("hello_agent")
+
+# Define a greeting intent handler
+class GreetingHandler(IntentHandler):
+    """Handles greeting intents."""
+    
+    def handle(self, request: AgentRequest) -> AgentResponse:
+        """Handle greeting intent."""
+        # Get the user's name if provided
+        name = self.extract_parameter(request.parameters, 'name', default="there")
+        
+        # Create a response
+        return AgentResponse(
+            fulfillment_text=f"Hello, {name}! How can I help you today?",
+            payload={
+                "richContent": [[{
+                    "type": "chips",
+                    "options": [
+                        {"text": "Tell me a joke"},
+                        {"text": "Tell me the time"},
+                        {"text": "Goodbye"}
+                    ]
+                }]]
+            }
+        )
+
+# Define a fallback intent handler
+class FallbackHandler(IntentHandler):
+    """Handles fallback intent when no other intent matches."""
+    
+    def handle(self, request: AgentRequest) -> AgentResponse:
+        """Handle fallback intent."""
+        return AgentResponse(
+            fulfillment_text="I'm sorry, I didn't understand that. Could you please rephrase?"
+        )
+
+# Register intent handlers
+webhook.register_handler(GreetingHandler("greeting"))
+webhook.register_handler(FallbackHandler("fallback"))
+
+# Cloud Function entry point
+@functions_framework.http
+def hello_agent_webhook(request):
+    """Cloud Function entry point for the hello agent webhook."""
+    return webhook.handle_request(request)
+
+# For local testing
+if __name__ == "__main__":
+    from flask import Flask, request
+    
+    app = Flask(__name__)
+    
+    @app.route('/webhook', methods=['POST'])
+    def webhook_endpoint():
+        return hello_agent_webhook(request)
+    
+    print("Starting local webhook server at http://localhost:8080/webhook")
+    app.run(host='0.0.0.0', port=8080)
+```
+
+### 3. Create a requirements.txt File
+
+```
+functions-framework==3.*
+gcpai-framework==0.1.0
+```
+
+### 4. Test Locally
+
+Run the agent locally:
+
+```bash
+python main.py
+```
+
+This starts a local webhook server at http://localhost:8080/webhook.
+
+### 5. Deploy to Google Cloud
+
+Deploy the agent to Google Cloud Functions:
+
+```bash
+gcloud functions deploy hello_agent_webhook \
+    --runtime python39 \
+    --trigger-http \
+    --allow-unauthenticated
+```
+
+### 6. Set Up DialogFlow
+
+1. Go to the [DialogFlow Console](https://dialogflow.cloud.google.com/)
+2. Create a new agent
+3. Create the following intents:
+   - `greeting`: Add training phrases like "Hello", "Hi", "Hey there"
+   - `Default Fallback Intent`: Use the built-in fallback intent
+4. Set up fulfillment:
+   - Enable webhook
+   - Add the URL of your deployed Cloud Function
+   - Set webhook for all intents
+
+### 7. Test Your Agent
+
+Test your agent in the DialogFlow Console or using the DialogFlow Messenger integration.
+
+## Next Steps
+
+Now that you've created a basic agent, here are some next steps:
+
+1. **Add more intents**: Expand your agent's capabilities by adding more intent handlers
+2. **Use rich responses**: Enhance the user experience with cards, images, and other rich content
+3. **Integrate with external APIs**: Call external services to fetch data or perform actions
+4. **Add authentication**: Secure your agent by adding authentication to your webhook
+5. **Deploy a complete solution**: Use the framework's deployment tools to create a production-ready setup
+
+## Getting Help
+
+If you need help, check out:
+
+- The [documentation](https://gcpai-framework.readthedocs.io/)
+- The [examples](https://github.com/your-org/gcpai-framework/tree/main/examples) directory
+- The [issue tracker](https://github.com/your-org/gcpai-framework/issues) for reporting bugs or requesting features
+
+## Advanced Topics
+
+Once you're comfortable with the basics, explore these advanced topics:
+
+- **Context Management**: Use contexts to maintain state across multiple turns
+- **Entity Extraction**: Extract structured data from user inputs
+- **Multi-turn Conversations**: Build complex dialogs that span multiple turns
+- **Integration Testing**: Test your agent with mock requests and validators
+- **Monitoring and Logging**: Track usage and troubleshoot issues with the framework's logging tools

@@ -1,0 +1,535 @@
+openapi: 3.0.3
+info:
+  title: AI Portfolio Manager API
+  description: API for algorithmic portfolio management for retail investors
+  version: 1.0.0
+servers:
+  - url: https://trade-executor-621548546437.us-central1.run.app
+    description: Cloud Run service endpoint
+paths:
+  /volatility_opportunities:
+    get:
+      summary: Retrieve volatility-based investment opportunities
+      description: Returns current high-volatility stocks with trading opportunities
+      operationId: getVolatilityOpportunities
+      parameters:
+        - name: min_volatility
+          in: query
+          description: Minimum volatility threshold (%)
+          schema:
+            type: number
+            format: float
+          required: false
+        - name: momentum_direction
+          in: query
+          description: Filter by momentum direction
+          schema:
+            type: string
+            enum: [positive, negative]
+          required: false
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+          required: false
+      responses:
+        '200':
+          description: Successful response with volatility opportunities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  market_overview:
+                    type: object
+                    properties:
+                      analysis_date:
+                        type: string
+                        format: date-time
+                      volatile_sectors:
+                        type: array
+                        items:
+                          type: object
+                  volatility_opportunities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        symbol:
+                          type: string
+                        sector:
+                          type: string
+                        volatility:
+                          type: number
+                        momentum:
+                          type: number
+                        price:
+                          type: number
+                        strategies:
+                          type: array
+                          items:
+                            type: object
+                  opportunity_count:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  
+  /sector_analysis:
+    get:
+      summary: Analyze market sectors
+      description: Provides analysis and insights on market sectors
+      operationId: getSectorAnalysis
+      responses:
+        '200':
+          description: Successful response with sector analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sector_analysis:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                      sectors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            symbol:
+                              type: string
+                            name:
+                              type: string
+                            volatility:
+                              type: number
+                            momentum:
+                              type: number
+                            volume_ratio:
+                              type: number
+                            signal:
+                              type: string
+                      insights:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                            description:
+                              type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  
+  /analyze_symbol:
+    get:
+      summary: Analyze specific stock symbol
+      description: Returns detailed analysis for a specific stock
+      operationId: analyzeSymbol
+      parameters:
+        - name: symbol
+          in: query
+          description: Stock ticker symbol
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response with symbol analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  symbol:
+                    type: string
+                  name:
+                    type: string
+                  sector:
+                    type: string
+                  industry:
+                    type: string
+                  current_price:
+                    type: number
+                  price_change_1d:
+                    type: number
+                  price_change_5d:
+                    type: number
+                  price_change_20d:
+                    type: number
+                  volatility:
+                    type: number
+                  average_volume:
+                    type: integer
+                  market_cap:
+                    type: integer
+                  pe_ratio:
+                    type: number
+                  dividend_yield:
+                    type: number
+                  options_data:
+                    type: object
+                  institutional_indicator:
+                    type: object
+                  strategies:
+                    type: array
+                    items:
+                      type: object
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Symbol not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  
+  /portfolio_analyzer:
+    post:
+      summary: Analyze investment portfolio
+      description: Returns analysis and recommendations for a portfolio of holdings
+      operationId: analyzePortfolio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - holdings
+              properties:
+                holdings:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      symbol:
+                        type: string
+                      name:
+                        type: string
+                      value:
+                        type: number
+                      quantity:
+                        type: number
+                      asset_class:
+                        type: string
+                      sector:
+                        type: string
+                risk_profile:
+                  type: string
+                  enum: [conservative, moderate, aggressive]
+                  default: moderate
+      responses:
+        '200':
+          description: Successful response with portfolio analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  portfolio_value:
+                    type: number
+                  asset_allocation:
+                    type: object
+                  risk_metrics:
+                    type: object
+                  diversification:
+                    type: object
+                  recommendations:
+                    type: array
+                    items:
+                      type: object
+                  analysis_timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  
+  /generate_investment_strategy:
+    post:
+      summary: Generate personalized investment strategy
+      description: Creates an investment strategy based on investor profile
+      operationId: generateInvestmentStrategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - investor_profile
+              properties:
+                investor_profile:
+                  type: object
+                  properties:
+                    risk_tolerance:
+                      type: string
+                      enum: [conservative, moderate, aggressive]
+                      default: moderate
+                    investment_horizon:
+                      type: string
+                      enum: [short, medium, long]
+                      default: medium
+                    investment_goals:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            enum: [retirement, education, home_purchase, income]
+                          amount:
+                            type: number
+                          time_horizon:
+                            type: integer
+                current_portfolio:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      asset_class:
+                        type: string
+                      value:
+                        type: number
+      responses:
+        '200':
+          description: Successful response with investment strategy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  investment_strategy:
+                    type: object
+                    properties:
+                      asset_allocation:
+                        type: object
+                      goal_based_approaches:
+                        type: array
+                        items:
+                          type: object
+                      volatility_approach:
+                        type: object
+                      rebalancing_frequency:
+                        type: string
+                      tax_efficiency_focus:
+                        type: string
+                      transition_plan:
+                        type: object
+                  generated_at:
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  
+  /execute_portfolio_action:
+    post:
+      summary: Execute portfolio actions
+      description: Executes trading actions or portfolio changes
+      operationId: executePortfolioAction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action_type
+                - investor_id
+              properties:
+                action_type:
+                  type: string
+                  enum: [execute_trades, approve_trades, rebalance_portfolio]
+                investor_id:
+                  type: string
+                execution_mode:
+                  type: string
+                  enum: [fully_automated, approval_required, advisory_only]
+                  default: approval_required
+                trades:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      symbol:
+                        type: string
+                      action:
+                        type: string
+                        enum: [buy, sell]
+                      quantity:
+                        type: number
+                      order_type:
+                        type: string
+                        enum: [market, limit, stop, stop_limit]
+                      price:
+                        type: number
+                pending_id:
+                  type: string
+                holdings:
+                  type: array
+                  items:
+                    type: object
+                risk_tolerance:
+                  type: string
+                  enum: [low, medium, high]
+                objective:
+                  type: string
+                  enum: [income, balanced, growth]
+      responses:
+        '200':
+          description: Successful execution
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  
+  /educational_content:
+    get:
+      summary: Retrieve educational investing content
+      description: Returns educational content about investing topics
+      operationId: getEducationalContent
+      parameters:
+        - name: topic
+          in: query
+          description: Investment topic
+          schema:
+            type: string
+          required: true
+        - name: level
+          in: query
+          description: Expertise level
+          schema:
+            type: string
+            enum: [beginner, intermediate, advanced]
+            default: beginner
+          required: false
+      responses:
+        '200':
+          description: Successful response with educational content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      summary:
+                        type: string
+                      sections:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            heading:
+                              type: string
+                            content:
+                              type: string
+                      conclusion:
+                        type: string
+                  related_topics:
+                    type: array
+                    items:
+                      type: string
+                  note:
+                    type: string
+        '404':
+          description: Topic not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available_topics:
+                    type: array
+                    items:
+                      type: string
+                  error:
+                    type: string
